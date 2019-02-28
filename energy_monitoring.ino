@@ -27,14 +27,15 @@
 */
 
 #include <ModbusMaster.h>
+#include <LoRa.h>
 
 /*!
   We're using a MAX485-compatible RS485 Transceiver.
   Rx/Tx is hooked up to the hardware serial port at 'Serial'.
   The Data Enable and Receiver Enable pins are hooked up as follows:
 */
-#define MAX485_DE      PB1
-#define MAX485_RE_NEG  PB0
+#define MAX485_DE      PB13
+#define MAX485_RE_NEG  PB12
 
 // instantiate ModbusMaster object
 ModbusMaster node;
@@ -53,6 +54,16 @@ void postTransmission()
 
 void setup()
 {
+
+  //lora setup 
+LoRa.setPins(PA4, PB0, PB5);
+   if (!LoRa.begin(868E6)) {
+    Serial.println("Starting LoRa failed!");
+    while (1);
+  }
+
+
+  
   pinMode(MAX485_RE_NEG, OUTPUT);
   pinMode(MAX485_DE, OUTPUT);
   // Init in receive mode
@@ -77,7 +88,14 @@ void loop()
   uint8_t result;
   uint16_t data[6];
   byte dataT[2];
+
+
   
+ //lora packet send
+ LoRa.beginPacket();
+  LoRa.print("1");
+  LoRa.endPacket();
+ 
    //Toggle the coil at address 0x0002 (Manual Load Control)
   //result = node.writeSingleCoil(0x0000, 0x09);
  // state = !state;
@@ -107,5 +125,5 @@ Serial.println("5");
     
   }
 node.clearResponseBuffer();
-  delay(1000);
+  delay(60000*5);
 }
